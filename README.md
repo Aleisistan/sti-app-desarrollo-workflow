@@ -83,6 +83,7 @@ Al mismo tiempo, el job `test-frontend` compila dependencias de Angular y corre 
 ## Siguientes pasos sugeridos
 
 [![codecov](https://codecov.io/github/Aleisistan/sti-app-desarrollo-worflow/graph/badge.svg?token=161ACLIY2M)](https://codecov.io/github/Aleisistan/sti-app-desarrollo-worflow)
+[![CI](https://github.com/Aleisistan/sti-app-desarrollo-worflow/actions/workflows/ci.yml/badge.svg)](https://github.com/Aleisistan/sti-app-desarrollo-worflow/actions/workflows/ci.yml)
 - Documentar endpoints adicionales en `backend/README.md`.
 - Añadir pipelines específicos para el frontend si lo necesitas.
 - Configurar seeds/migraciones si quieres partir con datos iniciales.
