@@ -1,0 +1,46 @@
+services:
+  backend:
+    build:
+      context: ./backend #apunta carpeta del backend
+      dockerfile: Dockerfile         
+    command: npm run start:dev     # Comando para hacer Hot reload en NestJS
+    volumes:
+      - ./backend:/app   #Monta  toda la carpeta backend para ver los cambios
+      - /app/node_modules          #Volumen anónimo para evitar conflictos entre host y container
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./sticctbackendcasa/.env
+    depends_on:
+      - postgres
+    
+  frontend:
+    build: 
+      context: ./frontend                    #Apunta a la carpeta del Frontend
+      dockerfile: Dockerfile
+    command: ng serve --host 0.0.0.0 --poll 2000 #HOT reload con polling para detectar cambios en Docker
+    volumes:
+      - ./frontend:/app #Monta toda la carpeta frontend para ver cambios
+      - /app/node_modules    #Volumen anónimo para evitar conflictos entre host y container
+    ports:
+      - "4200:4200"  # Angular suele usar 4200, pero Nginx expone 80
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret123!
+      - POSTGRES_DB=sticct
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data  # Persiste datos
+  adminer:
+    image: adminer:latest
+    restart: always
+    ports:
+      - "8080:8080"
+volumes:
+    postgres-data:
