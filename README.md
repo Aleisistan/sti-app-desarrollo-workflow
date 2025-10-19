@@ -69,6 +69,8 @@ El workflow `Backend CI` ejecuta las pruebas e2e del backend contra un contenedo
 .github/workflows/ci.yml
 ```
 
+Al mismo tiempo, el job `test-frontend` compila dependencias de Angular y corre las pruebas unitarias en Chrome Headless, por lo que cualquier push a `main` disparará ambos chequeos automáticamente.
+
 ## Scripts útiles
 
 | Ubicación | Comando            | Descripción                             |
