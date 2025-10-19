@@ -10,7 +10,7 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - ./sticctbackendcasa/.env
+      - ./backend/.env
     depends_on:
       - postgres
     
