@@ -91,25 +91,26 @@ jobs:
           flags: frontend
           fail_ci_if_error: true
 
-           codeql:
-    name: CodeQL Analysis
+  codeql:
     runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend]
+    needs:
+      - test-backend
+      - test-frontend
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
-          # Ajustá los lenguajes que uses en backend y frontend
-          languages: javascript
+          languages: javascript-typescript
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
-        # Si tu build requiere pasos especiales, podés reemplazar este paso por el build necesario.
+        uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-        with:
-          output: results.sarif
+        uses: github/codeql-action/analyze@v3
