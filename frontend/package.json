@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
+  "test": "ng test",
+  "test:cov": "ng test --watch=false --code-coverage --browsers=ChromeHeadless",
     "serve:ssr:STI-CCT": "node dist/sticct/server/server.mjs"
   },
   "private": true,
