@@ -90,4 +90,26 @@ jobs:
           files: 'frontend/coverage/sti-cct/lcov.info'
           flags: frontend
           fail_ci_if_error: true
-          
+
+           codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          # Ajustá los lenguajes que uses en backend y frontend
+          languages: javascript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+        # Si tu build requiere pasos especiales, podés reemplazar este paso por el build necesario.
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          output: results.sarif
