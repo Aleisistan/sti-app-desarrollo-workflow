@@ -7,14 +7,13 @@ on:
   pull_request:
     branches:
       - main
-  schedule:
-    - cron: '23 0 * * 1'
+ 
   workflow_dispatch:
 
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'push' || (github.run_number % 3 == 0) }}
+    
     permissions:
       actions: read
       contents: read
