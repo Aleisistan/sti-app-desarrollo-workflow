@@ -1,6 +1,6 @@
-# STI App Monorepo
+# STI App 
 
-Proyecto full stack con un backend NestJS y un frontend Angular, listos para ejecutarse juntos mediante Docker o manualmente en cualquier equipo.
+Proyecto completo con backend NestJS y frontend Angular, listos para ejecutarse juntos mediante Docker o manualmente en cualquier equipo.
 
 ## Estructura
 

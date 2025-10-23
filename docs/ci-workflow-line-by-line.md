@@ -1,4 +1,4 @@
-# Explicación línea por línea de `.github/workflows/ci.yml`
+# Explicación detallada de `.github/workflows/ci.yml`
 
 Este archivo define el pipeline de GitHub Actions que ejecuta las pruebas del backend y el frontend. A continuación se detalla cada instrucción.
 
@@ -53,6 +53,16 @@ Este archivo define el pipeline de GitHub Actions que ejecuta las pruebas del ba
   4. `- name: Run e2e tests`
      - `run: npm run test:e2e`
        - Lanza Jest con la configuración `backend/test/jest-e2e.json`, conectándose al servicio Postgres definido arriba.
+  5. `- name: Run unit tests with coverage`
+     - `run: npm run test:cov`
+       - Ejecuta las pruebas unitarias del backend con generación de reportes de cobertura. Jest genera archivos de cobertura en formato LCOV en el directorio `backend/coverage/`.
+  6. `- name: Upload coverage to Codecov`
+     - `uses: codecov/codecov-action@v4`
+       - Utiliza la acción oficial de Codecov para subir los reportes de cobertura de código.
+     - `with:`
+       - `files: 'backend/coverage/lcov.info'` especifica la ruta al archivo de cobertura generado por Jest.
+       - `flags: backend` etiqueta este reporte como perteneciente al backend para separarlo del frontend en Codecov.
+       - `fail_ci_if_error: true` hace que el job falle si hay problemas subiendo la cobertura a Codecov.
 
 ### Job `test-frontend`
 - `test-frontend:` segundo job, se ejecuta en paralelo al backend.
@@ -63,12 +73,19 @@ Este archivo define el pipeline de GitHub Actions que ejecuta las pruebas del ba
 - `steps:`
   1. Checkout y setup de Node idénticos al job anterior, salvo que ahora `cache-dependency-path` apunta a `frontend/package-lock.json`.
   2. `npm ci` instala dependencias del frontend.
-  3. `- name: Run unit tests`
-     - `run: npm run test -- --watch=false --browsers=ChromeHeadless`
-       - Ejecuta los tests de Angular usando el runner de Karma en modo headless.
+  3. `- name: Run unit tests with coverage`
+     - `run: npm run test:cov`
+       - Ejecuta las pruebas unitarias de Angular con generación de reportes de cobertura usando Karma y Jest. Los reportes se generan en el directorio `frontend/coverage/`.
      - `env:`
-       - `CI: true` desactiva prompts interactivos en CLI de Angular/Karma.
+       - `CI: true` desactiva prompts interactivos en CLI de Angular/Karma y habilita el modo de ejecución única (sin watch).
        - `CHROME_BIN: /usr/bin/google-chrome` define la ruta del navegador preinstalado en la VM (Angular lo necesita para lanzar Chrome Headless).
+  4. `- name: Upload frontend coverage`
+     - `uses: codecov/codecov-action@v4`
+       - Sube los reportes de cobertura del frontend a Codecov.
+     - `with:`
+       - `files: 'frontend/coverage/sti-cct/lcov.info'` especifica la ruta al archivo de cobertura generado por Angular (el subdirectorio `sti-cct` corresponde al nombre del proyecto Angular).
+       - `flags: frontend` etiqueta este reporte como perteneciente al frontend para diferenciarlo del backend en Codecov.
+       - `fail_ci_if_error: true` hace que el job falle si hay errores al subir la cobertura.
 
 ## Resumen
 Este workflow asegura que cada push o PR a `main` dispare pruebas e2e del backend frente a una base Postgres real y pruebas unitarias del frontend en un entorno consistente. Los servicios, variables y caches están alineados con los archivos del repositorio (`backend/package.json`, `frontend/package.json`, `.env.test`).

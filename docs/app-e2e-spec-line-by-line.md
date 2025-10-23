@@ -1,4 +1,4 @@
-# Explicación línea por línea de `backend/test/app.e2e-spec.ts`
+# Explicación detallada `backend/test/app.e2e-spec.ts`
 
 Este documento detalla el propósito de cada línea del archivo de pruebas end-to-end del backend y referencia los módulos locales involucrados.
 
@@ -99,4 +99,4 @@ Este documento detalla el propósito de cada línea del archivo de pruebas end-t
   - `backend/src/users/users.service.ts`
   - `backend/src/orders/orders.service.ts`
 
-Con este desglose puedes rastrear cada dependencia y entender cómo las pruebas e2e ejercitan la API completa a través del módulo raíz `AppModule`.
+Con esto se puede rastrear cada dependencia y entender cómo las pruebas e2e ejercitan la API completa a través del módulo raíz `AppModule`.

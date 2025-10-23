@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 # Registro de Cambios Guiados  el Asistente
+=======
+# Registro de Cambios 
+>>>>>>> 96ccd9518009a1d3ffe4fbaee7c25f1301c3130b
 
-Este documento resume cada paso autorizado durante la sesión actual, para que puedas reproducir o auditar todo el trabajo realizado.
+Este documento resume los pasos del trabajo realizado.
 
 ## Contexto Inicial
 - Repositorio de origen: `Aleisistan/sti-app-desarrollo-worflow`
@@ -32,7 +36,7 @@ Este documento resume cada paso autorizado durante la sesión actual, para que p
 - Corrí `npm run test:e2e` hasta obtener resultado 100% verde.
 
 ### 5. Endpoint `/orders` con validaciones y pruebas
-- Decoré `CreateOrdersDto` y `UpdateOrderDto` con `class-validator`.
+- Decoré `CreateOrdersDto` y `UpdateOrderDto` con `class-validator`. Equivale a “usé decoradores de class-validator sobre cada property del DTO para que Nest valide automáticamente los datos entrantes según esas reglas.
 - Aseguré que `orders.service.ts` use la entidad de TypeORM.
 - Añadí pruebas en `app.e2e-spec.ts` para cubrir creación y validaciones del endpoint `/orders`.
 - Verifiqué que `npm run test:e2e` continúe pasando.
@@ -53,7 +57,7 @@ Este documento resume cada paso autorizado durante la sesión actual, para que p
 - Realicé commit `docs: mention frontend CI job` y lo empujé a `main` para disparar GitHub Actions.
 
 ### 9. Documento de sesión (este archivo)
-- Creé `docs/session-history.md` para dejar constancia narrativa de todo el proceso.
+- Creé `docs/session-history.md` para dejar documentado el proceso.
 
 ## Estado Final Verificado
 - Tests E2E del backend (`npm run test:e2e`) pasan contra Postgres.
@@ -76,4 +80,4 @@ Este documento resume cada paso autorizado durante la sesión actual, para que p
 3. Evaluar vulnerabilidades reportadas por `npm audit` en ambos proyectos.
 4. Publicar instrucciones adicionales sobre despliegue (Render, Netlify, etc.) si se requieren.
 
-Con este resumen puedes reproducir cada paso, revertir cambios específicos o extender la automatización según tus necesidades.
+
