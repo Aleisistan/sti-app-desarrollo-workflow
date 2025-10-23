@@ -1,4 +1,4 @@
-# Registro de Cambios Guiados por el Asistente
+# Registro de Cambios Guiados  el Asistente
 
 Este documento resume cada paso autorizado durante la sesión actual, para que puedas reproducir o auditar todo el trabajo realizado.
 
