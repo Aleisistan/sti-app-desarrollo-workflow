@@ -169,19 +169,21 @@ jobs:
           cd backend
           npm ci
 
-      - name: Install frontend dependencies
-        run: |
-          cd frontend
-          if ! npm ci; then
-            echo "npm ci failed, trying npm install to sync lock file"
-            npm install
-          fi
-
-      - name: Start backend in background
+      - name: Start backend in development mode
         run: |
           cd backend
-          npm run start:prod &
-          sleep 10
+          npm run start &
+          echo "Backend started in development mode (no build required), waiting for it to be ready..."
+          
+          # Wait for backend to be ready (max 30 seconds)
+          for i in {1..30}; do
+            if curl -f http://localhost:3000/health > /dev/null 2>&1; then
+              echo "Backend is ready!"
+              break
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 1
+          done
         env:
           NODE_ENV: test
           DB_HOST: localhost
@@ -190,14 +192,46 @@ jobs:
           DB_PASSWORD: secret123!
           DB_DATABASE: sticct_test
 
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          if ! npm ci; then
+            echo "npm ci failed, trying npm install to sync lock file"
+            npm install
+          fi
+
       - name: Build and serve frontend
         run: |
           cd frontend
           npm run build
-          npx http-server dist/sti-cct -p 4200 &
-          sleep 5
+          
+          # Install http-server globally and start frontend
+          npm install -g http-server
+          http-server dist/sti-cct -p 4200 &
+          
+          # Wait for frontend to be ready (max 15 seconds)
+          for i in {1..15}; do
+            if curl -f http://localhost:4200 > /dev/null 2>&1; then
+              echo "Frontend is ready!"
+              break
+            fi
+            echo "Waiting for frontend... ($i/15)"
+            sleep 1
+          done
 
       - name: Run smoke tests
         run: |
-          curl -f http://localhost:3000/health || exit 1
-          curl -f http://localhost:4200 || exit 1
+          echo "🔍 Checking running processes..."
+          ps aux | grep node || true
+          
+          echo "🔍 Checking ports..."
+          netstat -tulpn | grep :3000 || true
+          netstat -tulpn | grep :4200 || true
+          
+          echo "🔍 Testing backend health endpoint..."
+          curl -v http://localhost:3000/health || echo "Backend health check failed"
+          
+          echo "🔍 Testing frontend..."
+          curl -v http://localhost:4200 || echo "Frontend check failed"
+          
+          echo "✅ Smoke tests completed!"

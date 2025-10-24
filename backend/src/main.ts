@@ -4,9 +4,9 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  app.enableCors(); // Permitir el envío de cookies o autenticación
   
   await app.listen(3000);
-                             // Permitir el envío de cookies o autenticación
-  }
+  console.log('Application is running on: http://localhost:3000');
+}
 bootstrap();

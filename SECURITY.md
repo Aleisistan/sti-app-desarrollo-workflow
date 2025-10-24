@@ -117,6 +117,45 @@ El CI ahora está configurado para:
 3. Si persiste, revisa las vulnerabilidades específicas
 4. Considera actualizar dependencias manualmente
 
+### Problemas de Integration Tests
+
+Si los **integration tests** fallan con errores de conexión:
+
+**Probar localmente:**
+```bash
+# Linux/Mac
+chmod +x test-integration.sh
+./test-integration.sh
+
+# Windows
+test-integration.bat
+```
+
+**Problemas comunes:**
+- Backend no inicia: Verificar `npm run start` en `/backend`
+- Puerto 3000 ocupado: Matar procesos `netstat -tulpn | grep :3000`
+- Base de datos no disponible: Verificar PostgreSQL corriendo
+- Health endpoint no responde: Verificar `/health` en `app.controller.ts`
+
+### ¿Por qué usar modo desarrollo en tests?
+
+Los **integration tests** ahora usan `npm run start` (desarrollo) en lugar de `npm run start:prod` porque:
+
+✅ **Más rápido**: No requiere compilación previa  
+✅ **Más apropiado**: Testing no es producción  
+✅ **Mejor debugging**: Source maps y error traces más claros  
+✅ **Menos pasos**: Elimina el paso de build  
+
+**Comparación:**
+```bash
+# ❌ Antes (modo producción)
+npm run build    # Compilar TypeScript
+npm run start:prod    # Ejecutar JS compilado
+
+# ✅ Ahora (modo desarrollo)  
+npm run start    # Ejecutar TypeScript directamente
+```
+
 ## 📞 Necesitas ayuda?
 
 - Revisa los logs del CI para vulnerabilidades específicas
