@@ -58,6 +58,7 @@ jobs:
           files: 'backend/coverage/lcov.info'
           flags: backend
           fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
           
   test-frontend:
     runs-on: ubuntu-latest
