@@ -46,6 +46,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run npm audit
+        run: npm audit fix
+        
+      - name: Security vulnerability check
+        run: npm audit --audit-level high
+        continue-on-error: true
+        
+      - name: Run lint
+        run: npm run lint
+        
       - name: Run e2e tests
         run: npm run test:e2e
 
@@ -59,6 +69,23 @@ jobs:
           flags: backend
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  docker-build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test Backend Docker build
+        run: |
+          cd backend
+          docker build -t test-backend .
+          docker run --rm test-backend node --version
+
+      - name: Test Frontend Docker build
+        run: |
+          cd frontend
+          docker build -t test-frontend .
           
   test-frontend:
     runs-on: ubuntu-latest
@@ -79,11 +106,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run lint
+        run: ng lint
+        continue-on-error: true
+
       - name: Run unit tests with coverage
         run: npm run test:cov
         env:
           CI: true
           CHROME_BIN: /usr/bin/google-chrome
+
+      - name: Build application
+        run: npm run build
 
       - name: Upload frontend coverage
         uses: codecov/codecov-action@v4
@@ -91,3 +125,62 @@ jobs:
           files: 'frontend/coverage/sti-cct/lcov.info'
           flags: frontend
           fail_ci_if_error: true
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: secret123!
+          POSTGRES_DB: sticct_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sticct_test" --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Start backend in background
+        run: |
+          cd backend
+          npm run start:prod &
+          sleep 10
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: postgres
+          DB_PASSWORD: secret123!
+          DB_DATABASE: sticct_test
+
+      - name: Build and serve frontend
+        run: |
+          cd frontend
+          npm run build
+          npx http-server dist/sti-cct -p 4200 &
+          sleep 5
+
+      - name: Run smoke tests
+        run: |
+          curl -f http://localhost:3000/health || exit 1
+          curl -f http://localhost:4200 || exit 1
