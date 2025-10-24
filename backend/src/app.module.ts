@@ -23,7 +23,13 @@ import { UsersModule } from './users/users.module';
       database:
         process.env.DB_DATABASE ||
         (process.env.NODE_ENV === 'test' ? 'sticct_test' : 'sticct'),
-      ssl: process.env.TYPEORM_SSL === 'true',
+      ssl:
+        process.env.TYPEORM_SSL === 'true'
+          ? {
+              rejectUnauthorized:
+                process.env.TYPEORM_SSL_REJECT_UNAUTHORIZED !== 'false',
+            }
+          : false,
       synchronize: true,
       autoLoadEntities: true,
       entities: [Order, User],
