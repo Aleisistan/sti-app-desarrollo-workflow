@@ -19,7 +19,10 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:integration": "jest --config ./test/jest-integration.json",
-    "security:check": "npm audit --audit-level high"
+    "security:check": "npm audit --audit-level high",
+    "security:fix": "npm audit fix",
+    "security:fix-force": "npm audit fix --force",
+    "security:report": "npm audit --audit-level moderate --json > security-report.json || true"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.3",

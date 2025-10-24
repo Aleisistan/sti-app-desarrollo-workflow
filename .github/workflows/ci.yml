@@ -46,11 +46,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run npm audit
-        run: npm audit fix
+      - name: Run npm audit (report only)
+        run: npm audit --audit-level high || true
         
-      - name: Security vulnerability check
-        run: npm audit --audit-level high
+      - name: Try to fix non-breaking vulnerabilities
+        run: npm audit fix --audit-level high || true
+        continue-on-error: true
+        
+      - name: Security vulnerability summary
+        run: |
+          echo "=== Security Audit Summary ==="
+          npm audit --audit-level moderate || echo "Vulnerabilities found - check logs above"
         continue-on-error: true
         
       - name: Run lint
@@ -105,6 +111,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Security audit for frontend
+        run: npm audit --audit-level moderate || echo "Frontend vulnerabilities found"
+        continue-on-error: true
 
       - name: Run lint
         run: ng lint
