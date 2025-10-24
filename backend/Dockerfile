@@ -1,13 +1,17 @@
-#Etapa 1: Construir el backend
-FROM node:20-alpine 
+# Construcción y ejecución del backend en modo producción
+FROM node:20-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm ci
 
-COPY . . 
+COPY . .
 
-CMD ["npm","run", "start:dev"] #Esto sobreescribe en docker-compose si es necesario
+RUN npm run build
+
+ENV NODE_ENV=production
+
+CMD ["npm", "run", "start:prod"]
 
