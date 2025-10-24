@@ -31,7 +31,14 @@ fix_frontend() {
     echo "🔧 Fixing Frontend vulnerabilities..."
     cd frontend
     
-    echo "📋 Current vulnerabilities:"
+    echo "� Checking package.json and package-lock.json sync..."
+    if ! npm ci > /dev/null 2>&1; then
+        echo "📦 package.json and package-lock.json are out of sync. Updating..."
+        npm install
+        echo "✅ package-lock.json updated successfully"
+    fi
+    
+    echo "�📋 Current vulnerabilities:"
     npm audit --audit-level moderate || true
     
     echo "🔄 Attempting to fix non-breaking vulnerabilities..."

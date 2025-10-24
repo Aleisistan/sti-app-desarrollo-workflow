@@ -32,6 +32,17 @@ function Fix-Frontend {
     Write-Host "🔧 Fixing Frontend vulnerabilities..." -ForegroundColor Yellow
     Set-Location frontend
     
+    # Check if package.json and package-lock.json are in sync
+    Write-Host "🔄 Checking package.json and package-lock.json sync..." -ForegroundColor Blue
+    $npmCiResult = npm ci 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "📦 package.json and package-lock.json are out of sync. Updating..." -ForegroundColor Yellow
+        npm install
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ package-lock.json updated successfully" -ForegroundColor Green
+        }
+    }
+    
     Write-Host "📋 Current vulnerabilities:" -ForegroundColor Blue
     npm audit --audit-level moderate
     if ($LASTEXITCODE -ne 0) { Write-Host "Vulnerabilities found" -ForegroundColor Yellow }

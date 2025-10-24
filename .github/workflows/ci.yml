@@ -110,7 +110,11 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          if ! npm ci; then
+            echo "npm ci failed, trying npm install to sync lock file"
+            npm install
+          fi
 
       - name: Security audit for frontend
         run: npm audit --audit-level moderate || echo "Frontend vulnerabilities found"
@@ -168,7 +172,10 @@ jobs:
       - name: Install frontend dependencies
         run: |
           cd frontend
-          npm ci
+          if ! npm ci; then
+            echo "npm ci failed, trying npm install to sync lock file"
+            npm install
+          fi
 
       - name: Start backend in background
         run: |

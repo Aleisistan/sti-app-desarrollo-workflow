@@ -4,7 +4,17 @@ Este documento explica cómo manejar las vulnerabilidades de seguridad en el pro
 
 ## 🚨 ¿Por qué falla el CI?
 
-El CI puede fallar cuando `npm audit` encuentra vulnerabilidades de seguridad. Esto es **normal y esperado** en proyectos Node.js, especialmente con dependencias que tienen vulnerabilidades conocidas.
+El CI puede fallar por dos razones principales:
+
+1. **Vulnerabilidades de seguridad**: `npm audit` encuentra vulnerabilidades conocidas
+2. **Lock file desincronizado**: `package.json` y `package-lock.json` no están sincronizados
+
+### Error común: `EUSAGE npm ci`
+```
+npm error `npm ci` can only install packages when your package.json and package-lock.json are in sync
+```
+
+**Solución**: Ejecutar `npm install` para sincronizar los archivos.
 
 ## 🛠️ Cómo solucionarlo
 
@@ -44,6 +54,29 @@ npm audit --audit-level moderate
 npm audit fix --force
 ```
 **Nota:** Esto puede introducir cambios breaking. Úsalo solo si entiendes las consecuencias.
+
+## 🔧 Solucionando problemas de Lock File
+
+### Si aparece error `EUSAGE npm ci`:
+
+**Frontend:**
+```bash
+cd frontend
+npm install  # Esto actualizará package-lock.json
+npm audit fix
+```
+
+**Backend:**
+```bash
+cd backend  
+npm install  # Si es necesario
+npm audit fix
+```
+
+### ¿Por qué ocurre?
+- Se agregaron nuevas dependencias al `package.json`
+- El `package-lock.json` no se actualizó
+- `npm ci` requiere que ambos archivos estén sincronizados
 
 ## 📊 Entendiendo los niveles de vulnerabilidad
 
