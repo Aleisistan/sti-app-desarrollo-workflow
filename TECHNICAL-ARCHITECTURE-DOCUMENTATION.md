@@ -1,7 +1,7 @@
 # 🏗️ Arquitectura Técnica Detallada - STI API System
 **Documento Técnico Completo**  
-**Fecha:** 24 de Octubre, 2025  
-**Versión:** 2.0.0  
+**Fecha:** 27 de Octubre, 2025  
+**Versión:** 2.1.0  
 **Proyecto:** Sistema de Gestión STI (Soporte Técnico Informático)
 
 ---
@@ -259,11 +259,30 @@ DB_DATABASE=sticct
 
 # Application  
 NODE_ENV=development
-PORT=3000
+PORT=3000             # En Render se inyecta dinámicamente (ej. 10000)
 
 # TypeORM
 TYPEORM_SSL=false
+TYPEORM_SSL_REJECT_UNAUTHORIZED=true  # Cambiar a false si el proveedor usa certificados self-signed
+
+# Integraciones externas
+FRONTEND_PORT=4200    # Solo en entornos locales con docker-compose
 ```
+
+#### **Bootstrap del servidor (`main.ts`):**
+```typescript
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.enableCors();
+
+  const port = parseInt(process.env.PORT ?? '3000', 10);
+  await app.listen(port, '0.0.0.0');
+}
+
+bootstrap();
+```
+
+> Render define automáticamente `PORT` (p.e. 10000), por lo que este ajuste garantiza compatibilidad con la plataforma.
 
 #### **Scripts npm:**
 ```json
@@ -468,8 +487,10 @@ export const environment = {
 // environment.prod.ts (Producción)
 export const environment = {
   production: true,
-  apiUrl: 'https://api.sti-system.com'
+  apiUrl: 'https://sti-api-backend.onrender.com'
 };
+
+// Opcional: sobrescribir durante el build con NG_APP_API_URL en Render
 ```
 
 #### **Angular Configuration:**
@@ -570,8 +591,16 @@ TypeOrmModule.forRoot({
   port: parseInt(process.env.DB_PORT ?? '5432', 10),
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'secret123!',
-  database: process.env.DB_DATABASE || 'sticct',
-  ssl: process.env.TYPEORM_SSL === 'true',
+  database:
+    process.env.DB_DATABASE ||
+    (process.env.NODE_ENV === 'test' ? 'sticct_test' : 'sticct'),
+  ssl:
+    process.env.TYPEORM_SSL === 'true'
+      ? {
+          rejectUnauthorized:
+            process.env.TYPEORM_SSL_REJECT_UNAUTHORIZED !== 'false',
+        }
+      : false,
   synchronize: true,        // ⚠️ Solo en desarrollo
   autoLoadEntities: true,
   entities: [Order, User],
@@ -646,27 +675,70 @@ postgres:
 
 #### **Backend Dockerfile:**
 ```dockerfile
+# Construcción y ejecución del backend en modo producción
 FROM node:20-alpine
+
 WORKDIR /app
+
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
+
 COPY . .
 RUN npm run build
-EXPOSE 3000
+
+ENV NODE_ENV=production
+
 CMD ["npm", "run", "start:prod"]
 ```
 
 #### **Frontend Dockerfile:**
 ```dockerfile
+# Imagen orientada a desarrollo local con docker-compose
 FROM node:20-alpine
+
 WORKDIR /app
+
 COPY package*.json ./
-RUN npm ci
+RUN npm install -g @angular/cli
+RUN npm install
+
 COPY . .
-RUN npm run build
-EXPOSE 4200
-CMD ["npm", "start"]
+
+CMD ["ng", "serve", "--host", "0.0.0.0"]
 ```
+
+> ℹ️ En producción, el frontend se publica como **Static Site** en Render ejecutando `npm run build` y desplegando `dist/sti-cct/browser` (ver sección de despliegue más abajo).
+
+### 🚀 Despliegue gestionado en Render
+
+| Componente | Tipo de servicio Render | Fuente | Notas clave |
+|------------|-------------------------|--------|-------------|
+| **Backend** | *Web Service* (Docker) | Imagen `docker.io/aleisistan/sti-api` | Ejecuta `npm run start:prod`, escucha `PORT` provisto por Render |
+| **Frontend** | *Static Site* | Repo `frontend/` | Build `npm install && npm run build`, publica `dist/sti-cct/browser` |
+
+#### Backend
+- El workflow `.github/workflows/publicarimagen.yml` construye la imagen del backend y la publica en Docker Hub.<br>
+  - Requiere secretos: `DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN` (token con permisos *Read & Write*).
+  - La imagen incluye el build (+ `NODE_ENV=production`) y `main.ts` escucha `process.env.PORT` para soportar Render (`10000` por defecto).
+- Configuración recomendada en Render:
+  - `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE` según el servicio de base de datos.
+  - `TYPEORM_SSL=true` cuando el proveedor obliga TLS y `TYPEORM_SSL_REJECT_UNAUTHORIZED=false` si usa certificados self-signed.
+  - `NODE_ENV=production`.
+  - Render inyecta `PORT`, por lo que no es necesario definirlo manualmente.
+- Salud / smoke test: endpoint público `GET /health`.
+
+#### Frontend
+- Deploy como Static Site (ver guía extendida en `deployment/RENDER-FRONTEND-DEPLOY.md`).
+- Configuración crítica:
+  - **Root Directory**: `frontend`
+  - **Build Command**: `npm install && npm run build`
+  - **Publish Directory**: `dist/sti-cct/browser`
+  - **Redirect Rules**: `/* → /index.html` con tipo **Rewrite** (evita bucles 302).
+- Variables de entorno Angular:
+  - Define `environment.prod.ts` con `apiUrl` apuntando al backend en Render (`https://<backend>.onrender.com`).
+  - Opcionalmente expón `NG_APP_API_URL` en Render y consúmelo en tiempo de build.
+
+> 🧪 Para probar localmente el resultado estático se puede ejecutar `npx http-server dist/sti-cct/browser -p 4200` tras `npm run build`.
 
 ---
 
@@ -685,6 +757,18 @@ jobs:
   docker-build-test: # Validación de contenedores
   integration-tests: # Tests de integración completa
 ```
+
+### 🚢 **Workflow de publicación de imagen (`publicarimagen.yml`)**
+
+| Paso | Acción | Detalles |
+|------|--------|----------|
+| 1 | Checkout + Buildx | Habilita multi-plataforma (amd64) |
+| 2 | `docker/metadata-action` | Genera tags `latest`, por rama, tag y SHA |
+| 3 | Login Docker Hub | Usa `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN` |
+| 4 | `docker/build-push-action` | Construye desde `backend/`, `Dockerfile` actual |
+
+- Resultado: imagen `docker.io/<usuario>/sti-api` lista para ser consumida por Render u otros entornos.<br>
+- Se recomienda activar el *Deploy Hook* de Render para auto-desplegar tras cada push (guardar en secreto `RENDER_DEPLOY_HOOK`).
 
 ### 🧪 **Job: test-backend**
 
@@ -1034,10 +1118,11 @@ DB_DATABASE=sticct
 
 # Application
 NODE_ENV=development
-PORT=3000
+PORT=3000               # Render establece uno propio (p.e. 10000)
 
 # TypeORM
 TYPEORM_SSL=false
+TYPEORM_SSL_REJECT_UNAUTHORIZED=true
 TYPEORM_SYNCHRONIZE=true  # ⚠️ Solo desarrollo
 
 # Security (para futuro)

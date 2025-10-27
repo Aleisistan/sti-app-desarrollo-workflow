@@ -11,8 +11,8 @@ permissions:
 
 env:
   IMAGE_NAME: sti-api
-  CONTEXT_DIR: ./backend # Ajusta si tu Dockerfile está en otra carpeta
-  DOCKERFILE: ./backend/Dockerfile # Ajusta si tu Dockerfile tiene otro path
+  CONTEXT_DIR: ./backend 
+  DOCKERFILE: ./backend/Dockerfile 
 
 jobs:
   build-and-push:

@@ -22,6 +22,7 @@ Bienvenido al centro de documentación del proyecto STI API. Aquí encontrarás 
 ### 🔧 **Técnica Detallada**
 - **[CI-CD-IMPROVEMENTS-2025-10-24.md](CI-CD-IMPROVEMENTS-2025-10-24.md)** - Documentación completa de mejoras del pipeline
 - **[TECHNICAL-ARCHITECTURE-DOCUMENTATION.md](TECHNICAL-ARCHITECTURE-DOCUMENTATION.md)** - Arquitectura técnica completa del sistema
+- **[RENDER-FRONTEND-DEPLOY.md](deployment/RENDER-FRONTEND-DEPLOY.md)** - Guía práctica para publicar frontend y backend en Render
 
 ### 📁 **Por Módulo**
 - **[Backend](backend/README.md)** - API NestJS + TypeORM + PostgreSQL
