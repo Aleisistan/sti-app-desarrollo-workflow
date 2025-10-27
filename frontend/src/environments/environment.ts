@@ -1,5 +1,5 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://sti-api.onrender.com'
+    apiUrl: 'https://sti-app-desarrollo-workflow.onrender.com'
   };
   
