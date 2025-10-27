@@ -26,8 +26,9 @@ Proyecto completo con backend NestJS y frontend Angular, con **pipeline de CI/CD
 ├── docs/                 # Documentación del proyecto
 ├── .github/workflows/    # Pipeline CI/CD
 ├── docker-compose.yml    # Orchestración de contenedores
-├── fix-vulnerabilities.* # Scripts de automatización
-├── test-integration.*    # Scripts de testing local
+├── scripts/              # Utilidades automatizadas (fix/test)
+│   ├── fix/              # Scripts de remediación
+│   └── test/             # Scripts de testing local
 ├── SECURITY.md          # Guía de seguridad
 └── CI-CD-IMPROVEMENTS-*.md # Documentación de mejoras
 ```
@@ -122,23 +123,23 @@ Nuestro pipeline automatizado incluye **4 jobs principales**:
 ### 🔒 **Gestión de Vulnerabilidades**
 ```bash
 # Windows
-.\fix-vulnerabilities.ps1 all
+.\scripts\fix\fix-vulnerabilities.ps1 all
 
 # Linux/Mac  
-./fix-vulnerabilities.sh all
+./scripts/fix/fix-vulnerabilities.sh all
 
 # Solo frontend (Windows)
-fix-frontend.bat
+.\scripts\fix\fix-frontend.bat
 ```
 
 ### 🧪 **Testing Local de Integración**
 ```bash
 # Windows
-test-integration.bat
+.\scripts\test\test-integration.bat
 
 # Linux/Mac
-chmod +x test-integration.sh
-./test-integration.sh
+chmod +x scripts/test/test-integration.sh
+./scripts/test/test-integration.sh
 ```
 
 ### 🛠️ **Scripts por Proyecto**
@@ -169,8 +170,8 @@ npm run build             # Build optimizado
 | **Linting** | frontend | `npm run lint` | ESLint Angular + templates |
 | **Testing** | backend | `npm run test:e2e` | Tests integración + DB |
 | **Testing** | frontend | `npm run test:cov` | Tests + cobertura |
-| **Seguridad** | raíz | `.\fix-vulnerabilities.ps1 all` | Fix vulnerabilidades |
-| **Integración** | raíz | `test-integration.bat` | Test local completo |
+| **Seguridad** | raíz | `.\scripts\fix\fix-vulnerabilities.ps1 all` | Fix vulnerabilidades |
+| **Integración** | raíz | `.\scripts\test\test-integration.bat` | Test local completo |
 | **Health** | - | `curl http://localhost:3000/health` | Estado del backend |
 
 ## 🚨 Troubleshooting
@@ -178,7 +179,7 @@ npm run build             # Build optimizado
 ### ❌ **CI falla por vulnerabilidades**
 ```bash
 # 1. Ejecutar fix local
-.\fix-vulnerabilities.ps1 all
+.\scripts\fix\fix-vulnerabilities.ps1 all
 
 # 2. Commit y push
 git add . && git commit -m "fix: security vulnerabilities"
@@ -194,8 +195,8 @@ npm install  # Actualiza package-lock.json
 ### ❌ **Integration tests fallan**
 ```bash
 # Verificar servicios localmente
-test-integration.bat  # Windows
-./test-integration.sh # Linux/Mac
+.\scripts\test\test-integration.bat  # Windows
+./scripts/test/test-integration.sh # Linux/Mac
 ```
 
 ### ❌ **Puerto 3000/4200 ocupado**
@@ -230,7 +231,7 @@ lsof -ti:3000 | xargs kill -9
 2. Crear rama de feature (`git checkout -b feature/AmazingFeature`)
 3. **Ejecutar linting**: `npm run lint` en ambos proyectos
 4. **Ejecutar tests**: Verificar que pasen todos los tests
-5. **Verificar seguridad**: `.\fix-vulnerabilities.ps1 all`
+5. **Verificar seguridad**: `.\scripts\fix\fix-vulnerabilities.ps1 all`
 6. Commit cambios (`git commit -m 'Add some AmazingFeature'`)
 7. Push a la rama (`git push origin feature/AmazingFeature`)
 8. Abrir Pull Request

@@ -46,11 +46,11 @@ Esta versión representa una **mejora significativa** del pipeline de CI/CD con 
 ### 📁 New Files
 - `.github/workflows/ci.yml` - Pipeline CI/CD mejorado
 - `frontend/.eslintrc.json` - Configuración ESLint Angular
-- `fix-vulnerabilities.ps1` - Script PowerShell automatización
-- `fix-vulnerabilities.sh` - Script Bash automatización
-- `fix-frontend.bat` - Script Windows específico frontend
-- `test-integration.sh` - Testing local Linux/Mac
-- `test-integration.bat` - Testing local Windows
+- `scripts/fix/fix-vulnerabilities.ps1` - Script PowerShell automatización
+- `scripts/fix/fix-vulnerabilities.sh` - Script Bash automatización
+- `scripts/fix/fix-frontend.bat` - Script Windows específico frontend
+- `scripts/test/test-integration.sh` - Testing local Linux/Mac
+- `scripts/test/test-integration.bat` - Testing local Windows
 - `SECURITY.md` - Documentación de seguridad completa
 - `backend/test/jest-integration.json` - Configuración tests integración
 - `CI-CD-IMPROVEMENTS-2025-10-24.md` - Documentación detallada de mejoras

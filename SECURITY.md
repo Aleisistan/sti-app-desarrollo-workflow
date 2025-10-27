@@ -22,13 +22,13 @@ npm error `npm ci` can only install packages when your package.json and package-
 
 **Windows (PowerShell):**
 ```powershell
-.\fix-vulnerabilities.ps1 all
+.\scripts\fix\fix-vulnerabilities.ps1 all
 ```
 
 **Linux/Mac (Bash):**
 ```bash
-chmod +x fix-vulnerabilities.sh
-./fix-vulnerabilities.sh all
+chmod +x scripts/fix/fix-vulnerabilities.sh
+./scripts/fix/fix-vulnerabilities.sh all
 ```
 
 ### Opción 2: Manual
@@ -124,11 +124,11 @@ Si los **integration tests** fallan con errores de conexión:
 **Probar localmente:**
 ```bash
 # Linux/Mac
-chmod +x test-integration.sh
-./test-integration.sh
+chmod +x scripts/test/test-integration.sh
+./scripts/test/test-integration.sh
 
 # Windows
-test-integration.bat
+scripts\test\test-integration.bat
 ```
 
 **Problemas comunes:**

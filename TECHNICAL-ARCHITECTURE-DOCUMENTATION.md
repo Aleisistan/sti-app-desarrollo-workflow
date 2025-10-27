@@ -855,9 +855,9 @@ steps:
 #### **Scripts de Remediación:**
 ```bash
 # Automatización local
-fix-vulnerabilities.ps1    # PowerShell
-fix-vulnerabilities.sh     # Bash
-fix-frontend.bat          # Windows batch
+scripts/fix/fix-vulnerabilities.ps1    # PowerShell
+scripts/fix/fix-vulnerabilities.sh     # Bash
+scripts/fix/fix-frontend.bat          # Windows batch
 ```
 
 ### 🔐 **Variables de Entorno Seguras**
@@ -1129,6 +1129,24 @@ TYPEORM_SYNCHRONIZE=true  # ⚠️ Solo desarrollo
 JWT_SECRET=your-secret-key
 CORS_ORIGINS=http://localhost:4200
 ```
+
+### ⚠️ Deuda Técnica: Linting del Frontend
+
+Durante la integración de ESLint para Angular se detectaron varias infracciones que provienen de componentes históricos:
+
+- Selectores que no siguen el prefijo `app-`.
+- Uso extensivo de `any` y `Object` en formularios.
+- Hooks de ciclo de vida vacíos y componentes con lógica mínima.
+- Imágenes sin `alt` auto-generado.
+
+Para evitar que el pipeline de CI bloquee despliegues productivos, las reglas anteriores se relajan temporalmente en `frontend/.eslintrc.json`. Las decisiones están documentadas en `CI-CD-IMPROVEMENTS-2025-10-24.md#9-🧩-análisis-de-lint-y-deuda-técnica-aceptada` y forman parte del roadmap de refactorización. El objetivo a mediano plazo es:
+
+1. Migrar selectores y estilos a la convención oficial de Angular.
+2. Sustituir `any` por modelos tipados (`Order`, `User`, DTOs específicos).
+3. Completar o eliminar hooks vacíos.
+4. Añadir atributos `alt` y pruebas de accesibilidad.
+
+Cuando estas tareas se completen, se reactivarán las reglas estrictas para garantizar un estándar uniforme.
 
 #### **Backend Testing (.env.test):**
 ```bash

@@ -36,15 +36,15 @@ Bienvenido al centro de documentación del proyecto STI API. Aquí encontrarás 
 ### 🔒 **Seguridad**
 | Script | Plataforma | Propósito |
 |--------|------------|-----------|
-| `fix-vulnerabilities.ps1` | Windows PowerShell | Gestión completa de vulnerabilidades |
-| `fix-vulnerabilities.sh` | Linux/Mac Bash | Gestión completa de vulnerabilidades |
-| `fix-frontend.bat` | Windows Batch | Arreglo rápido frontend |
+| `scripts/fix/fix-vulnerabilities.ps1` | Windows PowerShell | Gestión completa de vulnerabilidades |
+| `scripts/fix/fix-vulnerabilities.sh` | Linux/Mac Bash | Gestión completa de vulnerabilidades |
+| `scripts/fix/fix-frontend.bat` | Windows Batch | Arreglo rápido frontend |
 
 ### 🧪 **Testing**
 | Script | Plataforma | Propósito |
 |--------|------------|-----------|
-| `test-integration.bat` | Windows | Testing local de integración |
-| `test-integration.sh` | Linux/Mac | Testing local de integración |
+| `scripts/test/test-integration.bat` | Windows | Testing local de integración |
+| `scripts/test/test-integration.sh` | Linux/Mac | Testing local de integración |
 
 ---
 
@@ -120,9 +120,9 @@ graph TD
 
 | Problema | Solución Rápida | Documentación |
 |----------|-----------------|---------------|
-| CI falla por vulnerabilidades | `.\fix-vulnerabilities.ps1 all` | [SECURITY.md](SECURITY.md) |
+| CI falla por vulnerabilidades | `.\scripts\fix\fix-vulnerabilities.ps1 all` | [SECURITY.md](SECURITY.md) |
 | Lock files desincronizados | `npm install` en directorio afectado | [README troubleshooting](README.md#-troubleshooting) |
-| Integration tests fallan | `test-integration.bat` | [Testing local](README.md#-scripts-de-automatización) |
+| Integration tests fallan | `.\scripts\test\test-integration.bat` | [Testing local](README.md#-scripts-de-automatización) |
 | Puerto ocupado | `netstat` + `taskkill` | [README troubleshooting](README.md#-troubleshooting) |
 
 ### 📞 **Escalación**
