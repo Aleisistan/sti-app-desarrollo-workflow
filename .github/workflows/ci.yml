@@ -121,7 +121,7 @@ jobs:
         continue-on-error: true
 
       - name: Run lint
-        run: ng lint
+        run: npm run lint
         continue-on-error: true
 
       - name: Run unit tests with coverage
