@@ -66,6 +66,14 @@ graph TB
     K --> L
 ```
 
+#### 📐 Interpretación del diagrama
+
+- **Infraestructura**: GitHub Actions coordina los pipelines y dispara la etapa de `Automated Testing`. Las imágenes de `Docker Containers` encapsulan tanto backend como frontend (y servicios auxiliares), de ahí las flechas hacia las capas superiores.
+- **Frontend Layer**: Angular 18 empaquetado en Docker ofrece UI responsiva y capacidades PWA; se comunica con la API mediante peticiones REST, reflejado en la flecha hacia `NestJS API`.
+- **API Layer**: NestJS concentra la lógica, publica endpoints REST y expone healthchecks usados por CI/CD y Render. También se distribuye en contenedores, conectando a la infraestructura y consumiendo datos de la capa inferior.
+- **Data Layer**: TypeORM mapea las entidades y persiste en PostgreSQL; las flechas desde la API muestran ese flujo directo de datos.
+- **Flujo general**: el código pasa por CI/CD, se construye en contenedores y termina sirviendo un frontend Angular que consume la API NestJS, mientras la API almacena información en PostgreSQL. Las pruebas automatizadas validan continuo este recorrido.
+
 ### 📊 **Stack Tecnológico**
 
 | Capa | Tecnología | Versión | Propósito |
