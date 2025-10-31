@@ -21,6 +21,7 @@ Bienvenido al centro de documentación del proyecto STI API. Aquí encontrarás 
 
 ### 🔧 **Técnica Detallada**
 - **[CI-CD-IMPROVEMENTS-2025-10-24.md](CI-CD-IMPROVEMENTS-2025-10-24.md)** - Documentación completa de mejoras del pipeline
+- **[TESTING-STRATEGY.md](docs/TESTING-STRATEGY.md)** - Portfolio de pruebas automatizadas y manuales
 - **[TECHNICAL-ARCHITECTURE-DOCUMENTATION.md](TECHNICAL-ARCHITECTURE-DOCUMENTATION.md)** - Arquitectura técnica completa del sistema
 - **[RENDER-FRONTEND-DEPLOY.md](deployment/RENDER-FRONTEND-DEPLOY.md)** - Guía práctica para publicar frontend y backend en Render
 
@@ -45,6 +46,7 @@ Bienvenido al centro de documentación del proyecto STI API. Aquí encontrarás 
 |--------|------------|-----------|
 | `scripts/test/test-integration.bat` | Windows | Testing local de integración |
 | `scripts/test/test-integration.sh` | Linux/Mac | Testing local de integración |
+| `docs/TESTING-STRATEGY.md` | Documento | Estrategia y cobertura de testing |
 
 ---
 

@@ -234,6 +234,8 @@ Durante la ejecución del job `test-frontend` se identificaron fallas de linting
 
 ## 🚀 Nuevo Flujo del CI Pipeline
 
+> 📌 **Referencia rápida:** la descripción detallada de cada prueba (unitarias, e2e, integración, smoke) vive ahora en [docs/TESTING-STRATEGY.md](docs/TESTING-STRATEGY.md). Este archivo resume cómo evolucionó el pipeline y el porqué de cada mejora.
+
 ### Estructura de Jobs
 
 ```mermaid

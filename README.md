@@ -213,6 +213,7 @@ lsof -ti:3000 | xargs kill -9
 
 - 📖 **[Mejoras CI/CD](CI-CD-IMPROVEMENTS-2025-10-24.md)** - Documentación completa de mejoras
 - 🔒 **[Guía de Seguridad](SECURITY.md)** - Gestión de vulnerabilidades  
+- 🧪 **[Testing Strategy](docs/TESTING-STRATEGY.md)** - Portafolio completo de tests automatizados y manuales
 - 📁 **[Docs del proyecto](docs/)** - Documentación técnica detallada
 
 ## 🎯 Próximas Mejoras Sugeridas
