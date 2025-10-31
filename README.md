@@ -1,6 +1,6 @@
 # STI App - Sistema de Desarrollo con CI/CD Avanzado
 
-Proyecto completo con backend NestJS y frontend Angular, con **pipeline de CI/CD robusto** que incluye linting, tests de seguridad, integración completa y containerización automática.
+Proyecto completo con backend NestJS y frontend Angular, con **pipeline de CI/CD robusto** que incluye linting, tests de seguridad, integración completa y containerización automáticamente.
 
 [![codecov](https://codecov.io/github/Aleisistan/sti-app-desarrollo-worflow/graph/badge.svg?token=161ACLIY2M)](https://codecov.io/github/Aleisistan/sti-app-desarrollo-worflow)
 [![CI](https://github.com/Aleisistan/sti-app-desarrollo-worflow/actions/workflows/ci.yml/badge.svg)](https://github.com/Aleisistan/sti-app-desarrollo-worflow/actions/workflows/ci.yml)
