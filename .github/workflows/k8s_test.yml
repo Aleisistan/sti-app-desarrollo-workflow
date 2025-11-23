@@ -39,7 +39,7 @@ jobs:
       - name: Deploy to Minikube
         run: |
           # Modificamos el deployment para usar la imagen local 'mi-backend:ci'
-          sed -i 's|image: .*|image: mi-backend:ci|' k8s/backend.yaml
+          sed -i 's|image: .*|image: mi-backend:ci|' k8s/backend.yml
           sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/backend.yml
           
           #aplico el deployment
