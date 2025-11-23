@@ -42,16 +42,7 @@ jobs:
           sed -i 's|image: .*|image: mi-backend:ci|' k8s/backend.yml
           sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/backend.yml
 
-      - name: Debug Connection String
-        run: |
-           echo "Vamos a ver si la variable existe..."
-           # Esto mostrará la variable enmascarada (***), pero confirma si está vacía o no
-           echo "DATABASE_URL is set to: ${{ secrets.SUPABASE_URL }}" 
-           
-           # Truco para ver solo el HOST sin ver la contraseña (útil para saber si es localhost)
-           echo "Extrayendo Host..."
-           echo "${{ secrets.SUPABASE_URL }}" | sed 's/.*@//' | cut -d':' -f1
-          
+     
           #aplico el deployment
           kubectl apply -f k8s/backend.yml
 
