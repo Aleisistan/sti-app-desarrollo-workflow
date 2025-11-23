@@ -27,11 +27,11 @@ jobs:
           eval $(minikube -p minikube docker-env)
           
           echo "🔨 Construyendo Backend..."
-          docker build -t mi-backend:test -f ./Dockerfile .
+          docker build -t mi-backend:test -f ./k8s/backend/Dockerfile backend
           
           echo "🔨 Construyendo Frontend (Nginx)..."
           # Asegúrate de haber actualizado el Dockerfile como te indiqué arriba
-          docker build -t mi-frontend:test -f ./frontend/Dockerfile ./frontend
+          docker build -t mi-frontend:test -f ./k8s/frontend/Dockerfile frontend
 
       # 2. DESPLEGAR DATABASE (Con Debug)
       - name: Deploy Database
@@ -107,8 +107,8 @@ jobs:
           # --- BACKEND ---
           echo "🔧 Configurando Backend..."
           sed -i 's|image: .*|image: mi-backend:test|' k8s/backend.yaml
-          sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/backend.yaml
-          kubectl apply -f k8s/backend.yaml
+          sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/backend.yml
+          kubectl apply -f k8s/backend.yml
           
           # Ajustes críticos para CI
           kubectl set resources deployment nest-backend --requests=cpu=50m,memory=128Mi --limits=cpu=300m
@@ -116,9 +116,9 @@ jobs:
 
           # --- FRONTEND ---
           echo "🔧 Configurando Frontend..."
-          sed -i 's|image: .*|image: mi-frontend:test|' k8s/frontend.yaml
-          sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/frontend.yaml
-          kubectl apply -f k8s/frontend.yaml
+          sed -i 's|image: .*|image: mi-frontend:test|' k8s/frontend.yml
+          sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/frontend.yml
+          kubectl apply -f k8s/frontend.yml
 
           # --- HPA ---
           kubectl autoscale deployment nest-backend --cpu-percent=10 --min=1 --max=5
