@@ -32,6 +32,9 @@ spec:
             secretKeyRef:
               name: db-credentials
               key: DATABASE_URL
+
+        - name: NODE_ENV
+          value: "production"
               
         resources:
           # RECURSOS AJUSTADOS PARA GITHUB ACTIONS
