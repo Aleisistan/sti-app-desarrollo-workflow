@@ -18,7 +18,7 @@ import { UsersModule } from './users/users.module';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DATABASE_URL || 'localhost',
+      host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT ?? '5432', 10),
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || 'secret123!',
@@ -26,10 +26,10 @@ import { UsersModule } from './users/users.module';
         process.env.DB_DATABASE ||
         (process.env.NODE_ENV === 'test' ? 'sticct_test' : 'sticct'),
       ssl:
-        process.env.NODE_ENV === 'production'
+        process.env.TYPEORM_SSL === 'true'
           ? {
-              rejectUnauthorized: false 
-                //process.env.TYPEORM_SSL_REJECT_UNAUTHORIZED !== 'false',
+              rejectUnauthorized:
+                process.env.TYPEORM_SSL_REJECT_UNAUTHORIZED !== 'false',
             }
           : false,
       synchronize: true,
