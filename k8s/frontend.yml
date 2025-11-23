@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: angular-frontend
+spec:
+  replicas: 1 # Empezamos con 1 pod
+  selector:
+    matchLabels:
+      app: angular-frontend
+  template:
+    metadata:
+      labels:
+        app: angular-frontend
+    spec:
+      containers:
+      - name: angular-container
+        # IMPORTANTE: Este nombre debe coincidir EXACTAMENTE con el 
+        # que uses en el comando 'docker build' de tu pipeline.
+        image: mi-frontend:test 
+        
+        # OBLIGATORIO: Al igual que en el backend, esto le dice a K8s:
+        # "No busques en internet, usa la imagen que acabo de construir aquí".
+        imagePullPolicy: Never 
+        
+        ports:
+        - containerPort: 80 # Nginx (que sirve Angular) usa el 80 por defecto
+        
+        resources:
+          # El frontend es ligero (solo sirve archivos estáticos), 
+          # así que le damos muy poco recursos.
+          requests:
+            cpu: "10m"
+            memory: "64Mi"
+          limits:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: angular-frontend-service
+spec:
+  selector:
+    app: angular-frontend
+  ports:
+    - protocol: TCP
+      port: 80       # Puerto expuesto dentro del clúster
+      targetPort: 80 # Puerto del contenedor (Nginx)
+  type: NodePort # Permite acceso externo (útil para debug)
