@@ -26,7 +26,7 @@ jobs:
         run: |
           export MINIKUBE_IN_STYLE=false
           eval $(minikube -p minikube docker-env)
-          docker build -t mi-backend:ci -f ./k8s/backend 
+          docker build -t mi-backend:ci -f ./k8s/backend/Dockerfile backend
           # Asegúrate que la ruta al Dockerfile sea correcta
 
       # 4. Crear Secretos de K8s usando los Secretos de GitHub
