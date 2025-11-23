@@ -21,7 +21,7 @@ FROM nginx:alpine
 
 # Copiamos los archivos compilados de la Etapa 1 a la carpeta de Nginx
 # IMPORTANTE: Reemplaza 'nombre-de-tu-app-en-angular-json' por el nombre real de tu carpeta en dist/
-COPY --from=build-step /app/dist/* /usr/share/nginx/html
+COPY --from=build-step /app/dist/*/ /usr/share/nginx/html
 
 # Nginx corre en el puerto 80 por defecto
 EXPOSE 80
