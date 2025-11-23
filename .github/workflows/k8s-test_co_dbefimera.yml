@@ -41,7 +41,7 @@ jobs:
           echo "🔨 Construyendo Frontend..."
           # AJUSTA LA RUTA A TU CARPETA DE ANGULAR
           # Ejemplo: docker build -t mi-frontend:test -f ./frontend/Dockerfile ./frontend
-          docker build -t mi-frontend:test -f .k8s/frontend/Dockerfile frontend
+          docker build -t mi-frontend:test -f ./k8s/frontend/Dockerfile frontend
 
       # 5. Desplegar Base de Datos EFÍMERA (Trampa para simular conexión)
       - name: Deploy Ephemeral Postgres
