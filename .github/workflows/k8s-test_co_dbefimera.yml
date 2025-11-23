@@ -106,7 +106,7 @@ jobs:
 
           # --- BACKEND ---
           echo "🔧 Configurando Backend..."
-          sed -i 's|image: .*|image: mi-backend:test|' k8s/backend.yaml
+          sed -i 's|image: .*|image: mi-backend:test|' k8s/backend.yml
           sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/backend.yml
           kubectl apply -f k8s/backend.yml
           
