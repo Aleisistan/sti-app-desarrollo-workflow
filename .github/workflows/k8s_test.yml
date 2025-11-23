@@ -58,6 +58,20 @@ jobs:
         run: |
           kubectl wait --for=condition=ready pod -l app=nest-backend --timeout=120s
 
+          # --- NUEVO BLOQUE DE DEBUG ---
+      # Este paso solo corre si el anterior falla
+      - name: Debug failed pods
+        if: failure() 
+        run: |
+          echo "=== ESTADO DE LOS PODS ==="
+          kubectl get pods
+          
+          echo "=== DETALLES DEL ERROR (DESCRIBE) ==="
+          kubectl describe pods -l app=nest-backend
+          
+          echo "=== LOGS DE LA APLICACIÓN ==="
+          kubectl logs -l app=nest-backend --tail=100
+
       # 7. PRUEBA DE CARGA (La simulación de tráfico)
       - name: Run Load Test & Verify Scaling
         run: |
