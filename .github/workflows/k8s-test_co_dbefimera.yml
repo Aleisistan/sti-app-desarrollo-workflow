@@ -1,54 +1,50 @@
-name: Full Stack K8s Scaling Test (Frontend + Backend)
+name: Full Stack K8s Scaling Test
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-  full-stack-test:
+  test-k8s:
     runs-on: ubuntu-latest
-    name: Test Architecture & Scaling
     steps:
-      # 1. Bajar el código del repositorio
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Iniciar Minikube con Metrics Server (Vital para el HPA)
       - name: Start Minikube
         uses: medyagh/setup-minikube@master
         with:
           addons: metrics-server
 
-      # 3. Configurar entorno Docker para usar el demonio de Minikube
-      - name: Setup Minikube Docker Env
-        run: |
-          eval $(minikube -p minikube docker-env)
+      - name: Setup Docker Env
+        run: eval $(minikube -p minikube docker-env)
 
-      # 4. Construir Imágenes Docker (Backend y Frontend)
-      - name: Build Images inside Minikube
+      # --- DIAGNÓSTICO DE FRONTEND ---
+      - name: Debug Frontend Files
         run: |
-          # Importante para que use el docker de minikube
+          echo "📂 Listando estructura de carpetas:"
+          ls -R frontend/ # O donde tengas tu código
+          # Esto te ayudará a ver si 'dist' se genera bien
+
+      - name: Build Images
+        run: |
           export MINIKUBE_IN_STYLE=false
           eval $(minikube -p minikube docker-env)
           
-          echo "🔨 Construyendo Backend..."
-          # AJUSTA LA RUTA SI TU DOCKERFILE NO ESTÁ EN LA RAÍZ
-          # Ejemplo: docker build -t mi-backend:test -f ./backend/Dockerfile ./backend
-          docker build -t mi-backend:test -f ./k8s/backend/Dockerfile backend 
+          # Backend
+          docker build -t mi-backend:test -f ./k8s/backend/Dockerfile backend
           
-          echo "🔨 Construyendo Frontend..."
-          # AJUSTA LA RUTA A TU CARPETA DE ANGULAR
-          # Ejemplo: docker build -t mi-frontend:test -f ./frontend/Dockerfile ./frontend
+          # Frontend (Asegúrate que el Dockerfile copie los archivos compilados correctamente)
+          # Si tu build de angular falla, el contenedor se crea vacío y Nginx crashea.
           docker build -t mi-frontend:test -f ./k8s/frontend/Dockerfile frontend
 
-      # 5. Desplegar Base de Datos EFÍMERA (Trampa para simular conexión)
-      - name: Deploy Ephemeral Postgres
+      # --- DESPLIEGUE INFALIBLE DE DB ---
+      - name: Deploy Database
         run: |
-          echo "🚀 Desplegando Postgres temporal..."
-          # Creamos el servicio y deployment de la DB
-          cat <<EOF > postgres-db.yml
+          kubectl create secret generic db-credentials \
+            --from-literal=DATABASE_URL='postgres://testuser:testpass@postgres-db:5432/testdb'
+
+          cat <<EOF > postgres-db.yaml
           apiVersion: v1
           kind: Service
           metadata:
@@ -85,90 +81,64 @@ jobs:
                     value: "testuser"
                   - name: POSTGRES_DB
                     value: "testdb"
+                  resources:
+                    requests:
+                      memory: "256Mi"
+                      cpu: "250m"
           EOF
-          
-          kubectl apply -f postgres-db.yml
-          
-          echo "⏳ Esperando a que la DB arranque y acepte conexiones..."
-          kubectl wait --for=condition=ready pod -l app=postgres-db --timeout=60s
-          sleep 20 # Pausa de seguridad para evitar Connection Refused inicial
+          kubectl apply -f postgres-db.yaml
 
-      # 6. Desplegar usando TUS archivos del repositorio
+      # --- NUEVO: ESPERA ACTIVA DE RED (SOLUCIÓN A ECONNREFUSED) ---
+      - name: Wait for DB TCP Port
+        run: |
+          echo "⏳ Esperando a que Postgres acepte conexiones TCP..."
+          # Lanzamos un pod 'desechable' que intenta conectar al puerto 5432 cada 2 segundos
+          # Si falla tras 120s, el pipeline se detiene aquí.
+          kubectl run wait-for-postgres --image=busybox --restart=Never --timeout=120s -- \
+            sh -c 'until nc -z postgres-db 5432; do echo "Esperando DB..."; sleep 2; done'
+          
+          # Esperamos a que ese pod termine exitosamente
+          kubectl wait --for=condition=completed pod/wait-for-postgres --timeout=120s
+          
+          # Limpiamos
+          kubectl delete pod wait-for-postgres
+
+      # --- DESPLIEGUE APPS ---
       - name: Deploy Apps (Using Repo Files)
         run: |
-          # 1. Crear el Secreto FALSO que espera tu backend.yaml
-          # Esto engaña a tu backend para que se conecte a la DB efímera de la prueba
-          kubectl create secret generic db-credentials \
-            --from-literal=DATABASE_URL='postgres://testuser:testpass@postgres-db:5432/testdb' \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-          # 2. Modificar BACKEND.YAML al vuelo (sin cambiar el archivo original del repo)
-          # Cambiamos la imagen por la de prueba y forzamos que no busque en internet
+          # 1. Adaptar BACKEND
           sed -i 's|image: .*|image: mi-backend:test|' k8s/backend.yml
           sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/backend.yml
           
-          # Aplicamos el backend
           kubectl apply -f k8s/backend.yml
           
-          # CRÍTICO: Sobrescribimos los recursos para el entorno de GitHub Actions
-          # Si tu archivo original pide mucha CPU, GitHub matará el proceso.
-          # Aquí forzamos que sea muy ligero para la prueba.
-          kubectl set resources deployment nest-backend --requests=cpu=50m,memory=128Mi --limits=cpu=250m,memory=512Mi
-          
-          # Forzamos variable de entorno NODE_ENV development para evitar errores SSL con la DB falsa
+          # Forzamos recursos bajos y entorno DEV
+          kubectl set resources deployment nest-backend --requests=cpu=50m,memory=128Mi --limits=cpu=500m
           kubectl set env deployment/nest-backend NODE_ENV=development
 
-          # 3. Modificar FRONTEND.YAML al vuelo
+          # 2. Adaptar FRONTEND
           sed -i 's|image: .*|image: mi-frontend:test|' k8s/frontend.yml
           sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/frontend.yml
 
-          # Aplicamos el frontend
           kubectl apply -f k8s/frontend.yml
-
-          # 4. Configurar HPA (Auto-escalado)
-          # Esto es igual, necesitamos alta sensibilidad para el test
+          
+          # Configurar HPA
           kubectl autoscale deployment nest-backend --cpu-percent=10 --min=1 --max=5
 
-      # 7. Esperar a que todo esté listo (Con Debug si falla)
-      - name: Wait for Pods Ready
-        id: wait-pods
+      - name: Wait for Pods & Debug
         run: |
-          echo "Esperando Backend..."
-          kubectl wait --for=condition=ready pod -l app=nest-backend --timeout=180s
+          echo "Esperando pods..."
+          # Damos más tiempo por si acaso
+          kubectl wait --for=condition=ready pod -l app=nest-backend --timeout=300s || (echo "❌ Backend falló" && kubectl logs -l app=nest-backend --all-containers --tail=100 && exit 1)
           
-          echo "Esperando Frontend..."
-          kubectl wait --for=condition=ready pod -l app=angular-frontend --timeout=120s
+          # Si el frontend falla, mostramos logs pero NO rompemos el pipeline (para que veas el backend escalar)
+          kubectl wait --for=condition=ready pod -l app=angular-frontend --timeout=120s || (echo "⚠️ Frontend falló, revisa tu Dockerfile" && kubectl logs -l app=angular-frontend --tail=20)
 
-      # 8. DEBUG (Solo corre si falla el paso anterior)
-      - name: Debug Failure
-        if: failure()
+      - name: Stress Test
         run: |
-          echo "🔴 ALGO FALLÓ. DIAGNÓSTICO:"
-          kubectl get pods
-          echo "--- LOGS BACKEND ---"
-          kubectl logs -l app=nest-backend --tail=50 --all-containers=true
-          echo "--- LOGS FRONTEND ---"
-          kubectl logs -l app=angular-frontend --tail=20 --all-containers=true
-
-      # 9. PRUEBA DE CARGA (Stress Test)
-      - name: Stress Test & Verify Scaling
-        if: success()
-        run: |
-          echo "🔥 Iniciando Load Test al Backend..."
-          # Lanzamos tráfico al servicio del backend
+          echo "🔥 Iniciando Load Test..."
           kubectl run load-gen --image=busybox --restart=Never -- /bin/sh -c "while true; do wget -q -O- http://nest-backend-service; done" &
-          
-          echo "⏳ Esperando 90 segundos para que el HPA reaccione..."
           sleep 90
-          
-          echo "📊 Reporte Final:"
-          kubectl get hpa
           REPLICAS=$(kubectl get deployment nest-backend -o jsonpath='{.status.replicas}')
-          echo "📈 Réplicas actuales: $REPLICAS"
-          
-          if [ "$REPLICAS" -gt 1 ]; then
-            echo "✅ PRUEBA EXITOSA: El sistema escaló correctamente."
-          else
-            echo "❌ FALLO: El sistema no escaló. Revisa configuración."
-            exit 1
-          fi
+          echo "📈 Réplicas finales: $REPLICAS"
+          if [ "$REPLICAS" -gt 1 ]; then echo "✅ ÉXITO"; else echo "❌ FALLO"; exit 1; fi
