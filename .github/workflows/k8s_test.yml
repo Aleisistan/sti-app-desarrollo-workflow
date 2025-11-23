@@ -39,11 +39,12 @@ jobs:
       - name: Deploy to Minikube
         run: |
           # Modificamos el deployment para usar la imagen local 'mi-backend:ci'
-          sed -i 's|image: .*|image: mi-backend:ci|' k8s/backend.yaml
-          sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/backend.yaml
-          
+          sed -i 's|image: .*|image: mi-backend:ci|' k8s/backend.yml
+          sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/backend.yml
+
+     
           #aplico el deployment
-          kubectl apply -f k8s/backend.yaml
+          kubectl apply -f k8s/backend.yml
 
           # Forzar recursos MUY bajos dinámicamente. 
           # Esto evita que modifiques tu archivo yaml original y protege la memoria del runner.
@@ -57,6 +58,20 @@ jobs:
       - name: Wait for Pod Ready
         run: |
           kubectl wait --for=condition=ready pod -l app=nest-backend --timeout=120s
+
+          # --- NUEVO BLOQUE DE DEBUG ---
+      # Este paso solo corre si el anterior falla
+      - name: Debug failed pods
+        if: failure() 
+        run: |
+          echo "=== ESTADO DE LOS PODS ==="
+          kubectl get pods
+          
+          echo "=== DETALLES DEL ERROR (DESCRIBE) ==="
+          kubectl describe pods -l app=nest-backend
+          
+          echo "=== LOGS DE LA APLICACIÓN ==="
+          kubectl logs -l app=nest-backend --tail=100
 
       # 7. PRUEBA DE CARGA (La simulación de tráfico)
       - name: Run Load Test & Verify Scaling
