@@ -100,7 +100,7 @@ jobs:
           # Esto engaña a tu backend para que se conecte a la DB efímera de la prueba
           kubectl create secret generic db-credentials \
             --from-literal=DATABASE_URL='postgres://testuser:testpass@postgres-db:5432/testdb' \
-            --dry-run=client -o yml | kubectl apply -f -
+            --dry-run=client -o yaml | kubectl apply -f -
 
           # 2. Modificar BACKEND.YAML al vuelo (sin cambiar el archivo original del repo)
           # Cambiamos la imagen por la de prueba y forzamos que no busque en internet
