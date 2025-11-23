@@ -40,10 +40,10 @@ jobs:
         run: |
           # Modificamos el deployment para usar la imagen local 'mi-backend:ci'
           sed -i 's|image: .*|image: mi-backend:ci|' k8s/backend.yaml
-          sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/backend.yaml
+          sed -i 's|imagePullPolicy: .*|imagePullPolicy: Never|' k8s/backend.yml
           
           #aplico el deployment
-          kubectl apply -f k8s/backend.yaml
+          kubectl apply -f k8s/backend.yml
 
           # Forzar recursos MUY bajos dinámicamente. 
           # Esto evita que modifiques tu archivo yaml original y protege la memoria del runner.
