@@ -1,0 +1,180 @@
+name: Full Stack K8s Scaling Test (No External DB)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  scaling-test:
+    runs-on: ubuntu-latest
+    name: Test Scaling Architecture
+    steps:
+      # 1. Bajar código
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Iniciar Minikube
+      - name: Start Minikube
+        uses: medyagh/setup-minikube@master
+        with:
+          addons: metrics-server # OBLIGATORIO para el HPA
+
+      # 3. Configurar entorno Docker de Minikube
+      - name: Setup Docker Env
+        run: |
+          eval $(minikube -p minikube docker-env)
+          echo "Minikube Docker env configured"
+
+      # 4. Construir Imágenes (Frontend y Backend)
+      - name: Build Images inside Minikube
+        run: |
+          export MINIKUBE_IN_STYLE=false
+          eval $(minikube -p minikube docker-env)
+          
+          # Construir Backend (Ajusta la ruta si es necesario)
+          docker build -t mi-backend:test -f ./k8s/backend/Dockerfile backend
+          
+          # Construir Frontend (Asumiendo que tienes Dockerfile en root o carpeta frontend)
+          # Si no tienes Dockerfile de front, comenta estas líneas
+          docker build -t mi-frontend:test -f ./k8s/frontend/Dockerfile frontend
+
+      # 5. Desplegar Base de Datos EFÍMERA (La trampa para que NestJS arranque)
+      - name: Deploy Ephemeral Postgres
+        run: |
+          # Creamos un Postgres simple en memoria/disco temporal
+          kubectl run postgres-db \
+            --image=postgres:15-alpine \
+            --env="POSTGRES_PASSWORD=testpass" \
+            --env="POSTGRES_USER=testuser" \
+            --env="POSTGRES_DB=testdb" \
+            --port=5432 \
+            --expose=true # Esto crea el servicio automáticamente
+            
+          # Esperamos a que la DB esté lista antes de lanzar el backend
+          kubectl wait --for=condition=ready pod postgres-db --timeout=60s
+
+      # 6. Generar y Desplegar Manifiestos K8s (Backend + Frontend)
+      - name: Deploy Apps & Configure Scaling
+        run: |
+          mkdir -p k8s-temp
+
+          # --- BACKEND YAML ---
+          cat <<EOF > k8s-temp/backend.yaml
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: nest-backend
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: nest-backend
+            template:
+              metadata:
+                labels:
+                  app: nest-backend
+              spec:
+                containers:
+                - name: nestjs
+                  image: mi-backend:test
+                  imagePullPolicy: Never
+                  ports:
+                  - containerPort: 3000
+                  env:
+                  # CONECTAMOS A LA DB INTERNA QUE CREAMOS ARRIBA
+                  - name: DATABASE_URL
+                    value: "postgres://testuser:testpass@postgres-db:5432/testdb"
+                  # Desactivamos SSL porque la DB interna no lo tiene
+                  - name: NODE_ENV
+                    value: "development" 
+                  resources:
+                    requests:
+                      cpu: "50m"
+                      memory: "128Mi"
+                    limits:
+                      cpu: "250m" # Tope bajo para forzar escalado
+                  startupProbe:
+                    httpGet:
+                      path: / # O /api
+                      port: 3000
+                    failureThreshold: 20
+                    periodSeconds: 5
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: nest-backend-service
+          spec:
+            selector:
+              app: nest-backend
+            ports:
+              - protocol: TCP
+                port: 80
+                targetPort: 3000
+            type: NodePort
+          EOF
+
+          # --- FRONTEND YAML (Opcional si quieres probar que sube) ---
+          cat <<EOF > k8s-temp/frontend.yaml
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: angular-frontend
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: angular-frontend
+            template:
+              metadata:
+                labels:
+                  app: angular-frontend
+              spec:
+                containers:
+                - name: angular
+                  image: mi-backend:test # USO LA MISMA PARA EL EJEMPLO (Cambia a mi-frontend:test)
+                  imagePullPolicy: Never
+                  ports:
+                  - containerPort: 80
+          EOF
+
+          # Aplicar todo
+          kubectl apply -f k8s-temp/backend.yaml
+          # kubectl apply -f k8s-temp/frontend.yaml # Descomenta si construiste el frontend
+          
+          # --- ACTIVAR AUTOSCALING (HPA) ---
+          # Sensibilidad extrema (10%) para que escale enseguida
+          kubectl autoscale deployment nest-backend --cpu-percent=10 --min=1 --max=5
+
+      # 7. Esperar a que el sistema arranque
+      - name: Wait for Backend Ready
+        run: |
+          kubectl wait --for=condition=ready pod -l app=nest-backend --timeout=120s
+
+      # 8. LOAD TEST (Prueba de Estrés)
+      - name: Stress Test & Verify Scaling
+        run: |
+          echo "🔥 Iniciando bombardeo de tráfico..."
+          
+          # Lanzamos 2 generadores de carga para asegurar saturación
+          kubectl run load-gen-1 --image=busybox --restart=Never -- /bin/sh -c "while true; do wget -q -O- http://nest-backend-service; done" &
+          kubectl run load-gen-2 --image=busybox --restart=Never -- /bin/sh -c "while true; do wget -q -O- http://nest-backend-service; done" &
+          
+          echo "⏳ Esperando 90 segundos a que el HPA despierte..."
+          sleep 90
+          
+          echo "🔍 Verificando estado..."
+          kubectl get hpa
+          kubectl get pods
+          
+          REPLICAS=$(kubectl get deployment nest-backend -o jsonpath='{.status.replicas}')
+          echo "📈 Réplicas finales: $REPLICAS"
+          
+          if [ "$REPLICAS" -gt 1 ]; then
+            echo "✅ PRUEBA EXITOSA: El backend escaló a $REPLICAS réplicas."
+          else
+            echo "❌ FALLO: El backend se quedó en 1 réplica. Revisa los límites de CPU."
+            exit 1
+          fi
