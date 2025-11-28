@@ -208,12 +208,12 @@ taskkill /PID <PID> /F
 # Linux/Mac
 lsof -ti:3000 | xargs kill -9
 ```
-# API Deployada
+## API Deployada
 
-## Frontend : https://sti-app-desarrollo-workflow.onrender.com/home
-## Backend : https://sti-api.onrender.com/
-## DB : https://supabase.com/dashboard/project/nqyhaykxsrgnyvsfwpgx
-## Docker Hub: https://hub.docker.com/repository/docker/alejandrotoloza/sti-api/general
+### Frontend : https://sti-app-desarrollo-workflow.onrender.com/home
+### Backend : https://sti-api.onrender.com/
+### DB : https://supabase.com/dashboard/project/nqyhaykxsrgnyvsfwpgx
+### Docker Hub: https://hub.docker.com/repository/docker/alejandrotoloza/sti-api/general
 
 ## 📚 Documentación Adicional
 
